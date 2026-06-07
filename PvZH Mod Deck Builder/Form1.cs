@@ -204,7 +204,7 @@ namespace PvZH_Mod_Deck_Builder
                 int CardID = Card.ID;
                 
                 string SearchText = CardSearch.Text.ToLower();
-                if (CardName.Contains(SearchText) || int.TryParse(SearchText, out int j) && j == Card.ID)
+                if (CardName.Contains(SearchText) || int.TryParse(SearchText, out int ParsedID) && ParsedID == Card.ID)
                 {
                     SearchedCards.Add(Card);
                 }
