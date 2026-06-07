@@ -234,7 +234,7 @@ namespace PvZH_Mod_Deck_Builder
         private void CardRemover_Click(object sender, EventArgs e)
         {
             CardItem CardToRemove = Deck.Cards.Find(x => x.ID == SelectedDeckCardID);
-            if (SelectedDeckCardID > 0 && CardToRemove != null)
+            if (SelectedDeckCardID > 0 && CardToRemove.ID > 0)
             {
                 Deck.Cards.Remove(CardToRemove);
                 DeckUpdate(true);
@@ -339,11 +339,11 @@ namespace PvZH_Mod_Deck_Builder
             }
         }
     }
-    public class CardItem
+    public struct CardItem
     {
-        public string Name { get; set; }
-        public int ID { get; set; }
-        public string Guid { get; set; }
+        public string Name { get; set; } = "";
+        public int ID { get; set; } = -1;
+        public string Guid { get; set; } = "";
         public CardItem(int id, string name, string guid)
         {
             Guid = guid;
