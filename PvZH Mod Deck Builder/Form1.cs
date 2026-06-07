@@ -223,9 +223,8 @@ namespace PvZH_Mod_Deck_Builder
             }
             else
             {
-                int NumOfPages = (int)Math.Floor(SearchedCards.Count / (float)ItemsPerPage) + 1;
                 int CurrentPage = CurrentSearchListPage + 1;
-                string str = CurrentPage.ToString() + "/" + NumOfPages.ToString();
+                string str = CurrentPage.ToString() + "/" + (NumOfSearchPages() + 1).ToString();
                 SearchListPageLabel.Text = str;
             }
         }
@@ -237,9 +236,8 @@ namespace PvZH_Mod_Deck_Builder
             }
             else
             {
-                int NumOfPages = (int)Math.Floor(Deck.UniqueCards().Count / (float)ItemsPerPage) + 1;
                 int CurrentPage = CurrentDeckListPage + 1;
-                string str = CurrentPage.ToString() + "/" + NumOfPages.ToString();
+                string str = CurrentPage.ToString() + "/" + (NumOfDeckPages() + 1).ToString() ;
                 DeckListPageLabel.Text = str;
             }
         }

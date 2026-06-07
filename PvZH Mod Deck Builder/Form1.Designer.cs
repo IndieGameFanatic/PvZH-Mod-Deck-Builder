@@ -317,7 +317,7 @@
             // 
             DeckTypeLabel.AutoSize = true;
             DeckTypeLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            DeckTypeLabel.Location = new Point(523, 46);
+            DeckTypeLabel.Location = new Point(42, 49);
             DeckTypeLabel.Name = "DeckTypeLabel";
             DeckTypeLabel.Size = new Size(46, 20);
             DeckTypeLabel.TabIndex = 24;
@@ -328,7 +328,7 @@
             DeckTypeComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             DeckTypeComboBox.FormattingEnabled = true;
             DeckTypeComboBox.Items.AddRange(new object[] { "Strategy" });
-            DeckTypeComboBox.Location = new Point(575, 43);
+            DeckTypeComboBox.Location = new Point(94, 46);
             DeckTypeComboBox.Name = "DeckTypeComboBox";
             DeckTypeComboBox.Size = new Size(91, 28);
             DeckTypeComboBox.TabIndex = 25;
@@ -338,7 +338,7 @@
             // 
             DeckNameLabel.AutoSize = true;
             DeckNameLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            DeckNameLabel.Location = new Point(34, 46);
+            DeckNameLabel.Location = new Point(366, 49);
             DeckNameLabel.Name = "DeckNameLabel";
             DeckNameLabel.Size = new Size(55, 20);
             DeckNameLabel.TabIndex = 26;
@@ -346,7 +346,7 @@
             // 
             // DeckNameTextBox
             // 
-            DeckNameTextBox.Location = new Point(95, 43);
+            DeckNameTextBox.Location = new Point(429, 46);
             DeckNameTextBox.Name = "DeckNameTextBox";
             DeckNameTextBox.Size = new Size(258, 27);
             DeckNameTextBox.TabIndex = 27;
@@ -356,7 +356,7 @@
             FactionTypeComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             FactionTypeComboBox.FormattingEnabled = true;
             FactionTypeComboBox.Items.AddRange(new object[] { "Zombies" });
-            FactionTypeComboBox.Location = new Point(430, 43);
+            FactionTypeComboBox.Location = new Point(243, 46);
             FactionTypeComboBox.Name = "FactionTypeComboBox";
             FactionTypeComboBox.Size = new Size(87, 28);
             FactionTypeComboBox.TabIndex = 28;
@@ -365,7 +365,7 @@
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.Location = new Point(382, 46);
+            label1.Location = new Point(195, 49);
             label1.Name = "label1";
             label1.Size = new Size(42, 20);
             label1.TabIndex = 29;
