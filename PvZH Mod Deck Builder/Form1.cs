@@ -202,7 +202,7 @@ namespace PvZH_Mod_Deck_Builder
             {
                 string CardName = Card.Name.ToLower();
                 int CardID = Card.ID;
-                
+
                 string SearchText = CardSearch.Text.ToLower();
                 if (CardName.Contains(SearchText) || int.TryParse(SearchText, out int ParsedID) && ParsedID == Card.ID)
                 {
@@ -426,9 +426,14 @@ namespace PvZH_Mod_Deck_Builder
             }
         }
 
-        private void ModifyCardDataToolStripMenuItem_Click(object sender, EventArgs e)
+        private void openCardDataLocationToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Process.Start("explorer.exe", CardsStorage.PathToFolder);
+        }
 
+        private void reloadCardDataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CardsStorage.GetAllCardsFromJson();
         }
     }
     public struct CardItem

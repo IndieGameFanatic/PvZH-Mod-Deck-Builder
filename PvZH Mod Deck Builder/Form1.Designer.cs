@@ -36,6 +36,7 @@
             saveAsToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripMenuItem();
             openCardDataToolStripMenuItem = new ToolStripMenuItem();
+            openCardDataLocationToolStripMenuItem = new ToolStripMenuItem();
             DeckLoader = new OpenFileDialog();
             DeckSaver = new SaveFileDialog();
             CardSearch = new RichTextBox();
@@ -63,6 +64,7 @@
             FactionTypeComboBox = new ComboBox();
             label1 = new Label();
             CardIDList = new ListBox();
+            reloadCardDataToolStripMenuItem = new ToolStripMenuItem();
             menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)CopiesToAdd).BeginInit();
             SuspendLayout();
@@ -123,10 +125,17 @@
             // 
             // openCardDataToolStripMenuItem
             // 
+            openCardDataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openCardDataLocationToolStripMenuItem, reloadCardDataToolStripMenuItem });
             openCardDataToolStripMenuItem.Name = "openCardDataToolStripMenuItem";
-            openCardDataToolStripMenuItem.Size = new Size(141, 24);
-            openCardDataToolStripMenuItem.Text = "Modify Card Data";
-            openCardDataToolStripMenuItem.Click += ModifyCardDataToolStripMenuItem_Click;
+            openCardDataToolStripMenuItem.Size = new Size(90, 24);
+            openCardDataToolStripMenuItem.Text = "Card Data";
+            // 
+            // openCardDataLocationToolStripMenuItem
+            // 
+            openCardDataLocationToolStripMenuItem.Name = "openCardDataLocationToolStripMenuItem";
+            openCardDataLocationToolStripMenuItem.Size = new Size(260, 26);
+            openCardDataLocationToolStripMenuItem.Text = "Open Card Data Location";
+            openCardDataLocationToolStripMenuItem.Click += openCardDataLocationToolStripMenuItem_Click;
             // 
             // DeckLoader
             // 
@@ -399,6 +408,13 @@
             CardIDList.Size = new Size(41, 384);
             CardIDList.TabIndex = 30;
             // 
+            // reloadCardDataToolStripMenuItem
+            // 
+            reloadCardDataToolStripMenuItem.Name = "reloadCardDataToolStripMenuItem";
+            reloadCardDataToolStripMenuItem.Size = new Size(260, 26);
+            reloadCardDataToolStripMenuItem.Text = "Reload Card Data";
+            reloadCardDataToolStripMenuItem.Click += reloadCardDataToolStripMenuItem_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -479,5 +495,7 @@
         private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem openCardDataToolStripMenuItem;
         private ListBox CardIDList;
+        private ToolStripMenuItem openCardDataLocationToolStripMenuItem;
+        private ToolStripMenuItem reloadCardDataToolStripMenuItem;
     }
 }
