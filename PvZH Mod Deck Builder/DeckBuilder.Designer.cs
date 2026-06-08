@@ -34,8 +34,8 @@
             loadToolStripMenuItem = new ToolStripMenuItem();
             saveToolStripMenuItem = new ToolStripMenuItem();
             saveAsToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem1 = new ToolStripMenuItem();
             openCardDataToolStripMenuItem = new ToolStripMenuItem();
+            modifyCardDataToolStripMenuItem = new ToolStripMenuItem();
             openCardDataLocationToolStripMenuItem = new ToolStripMenuItem();
             reloadCardDataToolStripMenuItem = new ToolStripMenuItem();
             DeckLoader = new OpenFileDialog();
@@ -72,7 +72,7 @@
             // menuStrip
             // 
             menuStrip.ImageScalingSize = new Size(20, 20);
-            menuStrip.Items.AddRange(new ToolStripItem[] { filesToolStripMenuItem, toolStripMenuItem1, openCardDataToolStripMenuItem });
+            menuStrip.Items.AddRange(new ToolStripItem[] { filesToolStripMenuItem, openCardDataToolStripMenuItem });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
             menuStrip.Size = new Size(720, 28);
@@ -118,17 +118,19 @@
             saveAsToolStripMenuItem.Text = "Save As...";
             saveAsToolStripMenuItem.Click += saveAsToolStripMenuItem_Click;
             // 
-            // toolStripMenuItem1
-            // 
-            toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(14, 24);
-            // 
             // openCardDataToolStripMenuItem
             // 
-            openCardDataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openCardDataLocationToolStripMenuItem, reloadCardDataToolStripMenuItem });
+            openCardDataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { modifyCardDataToolStripMenuItem, openCardDataLocationToolStripMenuItem, reloadCardDataToolStripMenuItem });
             openCardDataToolStripMenuItem.Name = "openCardDataToolStripMenuItem";
             openCardDataToolStripMenuItem.Size = new Size(90, 24);
             openCardDataToolStripMenuItem.Text = "Card Data";
+            // 
+            // modifyCardDataToolStripMenuItem
+            // 
+            modifyCardDataToolStripMenuItem.Name = "modifyCardDataToolStripMenuItem";
+            modifyCardDataToolStripMenuItem.Size = new Size(260, 26);
+            modifyCardDataToolStripMenuItem.Text = "Modify Card Data";
+            modifyCardDataToolStripMenuItem.Click += modifyCardDataToolStripMenuItem_Click;
             // 
             // openCardDataLocationToolStripMenuItem
             // 
@@ -450,7 +452,7 @@
             MaximizeBox = false;
             Name = "DeckBuilder";
             Text = "PvZH Deck Builder for Mods";
-            Load += Form1_Load;
+            Load += DeckBuilder_Load;
             menuStrip.ResumeLayout(false);
             menuStrip.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)CopiesToAdd).EndInit();
@@ -492,10 +494,10 @@
         private TextBox DeckNameTextBox;
         private ComboBox FactionTypeComboBox;
         private Label label1;
-        private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem openCardDataToolStripMenuItem;
         private ListBox CardIDList;
         private ToolStripMenuItem openCardDataLocationToolStripMenuItem;
         private ToolStripMenuItem reloadCardDataToolStripMenuItem;
+        private ToolStripMenuItem modifyCardDataToolStripMenuItem;
     }
 }

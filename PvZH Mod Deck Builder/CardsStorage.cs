@@ -7,7 +7,7 @@ namespace PvZH_Mod_Deck_Builder
 {
     internal struct CardsStorage
     {
-        static List<CardItem> DefaultAllCardItems =
+        static public List<CardItem> DefaultAllCardItems =
         [
             new CardItem(1, "Guacodile", "2f9fa005-8b50-4d1a-89be-38e4a82036c4"),
             new CardItem(2, "Chimney Sweep", "52827e9d-5e5a-49fa-85f5-07d2dd72ae67"),
@@ -603,7 +603,7 @@ namespace PvZH_Mod_Deck_Builder
             }
             if (!File.Exists(PathToAllCards))
             {
-                string str = JsonSerializer.Serialize(CardsStorage.DefaultAllCardItems);
+                string str = JsonSerializer.Serialize(DefaultAllCardItems);
                 using (StreamWriter writer = new StreamWriter(PathToAllCards))
                 {
                     writer.Write(str);
@@ -615,6 +615,19 @@ namespace PvZH_Mod_Deck_Builder
             using (StreamReader reader = new StreamReader(PathToAllCards))
             {
                 AllCardItems = JsonSerializer.Deserialize<List<CardItem>>(File.ReadAllText(PathToAllCards));
+                AllCardItems = AllCardItems.OrderBy(x => x.ID).ToList();
+            }
+        }
+        public static void UpdateJsonFileWithNewCardData()
+        {
+            if (!Directory.Exists(PathToFolder))
+            {
+                Directory.CreateDirectory(PathToFolder);
+            }
+            string str = JsonSerializer.Serialize(AllCardItems);
+            using (StreamWriter writer = new StreamWriter(PathToAllCards))
+            {
+                writer.Write(str);
             }
         }
     }

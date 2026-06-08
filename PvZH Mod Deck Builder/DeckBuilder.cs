@@ -26,17 +26,16 @@ namespace PvZH_Mod_Deck_Builder
         int ItemsPerPage = 20;
         public DeckBuilder()
         {
+            InitializeComponent();
+        }
+
+        private void DeckBuilder_Load(object sender, EventArgs e)
+        {
             CardsStorage.FirstTimeAllCardsJson();
             CardsStorage.GetAllCardsFromJson();
-            InitializeComponent();
             InitializeAllCards();
             InitializeDeck();
             InitializeCombos();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
         }
 
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
@@ -436,6 +435,21 @@ namespace PvZH_Mod_Deck_Builder
             CardsStorage.GetAllCardsFromJson();
             Deck.ForceUniqueCardsUpdate();
             DeckUpdate(false);
+        }
+
+        private void modifyCardDataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (CardDataModifier CDM = new CardDataModifier())
+            {
+                CDM.ShowDialog();
+                Deck.ForceUniqueCardsUpdate();
+                DeckUpdate(false);
+            }
+        }
+
+        private void menuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
         }
     }
     public struct CardItem
