@@ -7,12 +7,12 @@ namespace PvZH_Mod_Deck_Builder
     internal class UnityAssetHandler
     {
         AssetsManager Manager = new AssetsManager();
-        BundleFileInstance BundleInstance = null!;
-        AssetBundleFile Bundle = null!;
-        AssetsFileInstance AssetFileInstance = null!;
-        AssetsFile AssetFile = null!;
-        List<AssetFileInfo> DecksInfo = [];
-        internal void LoadDecksFromBundle(string FilePath)
+        BundleFileInstance BundleInstance;
+        AssetBundleFile Bundle;
+        AssetsFileInstance AssetFileInstance;
+        AssetsFile AssetFile;
+        List<AIAssetDeck> AIDecks = [];
+        internal void LoadDecksFromDataAssets(string FilePath)
         {
             try
             {
@@ -20,34 +20,36 @@ namespace PvZH_Mod_Deck_Builder
                 Bundle = BundleInstance.file;
                 AssetFileInstance = Manager.LoadAssetsFileFromBundle(BundleInstance, 0, false);
                 AssetFile = AssetFileInstance.file;
-                DecksInfo.Clear();
+                AIDecks.Clear();
                 foreach (var texInfo in AssetFile.GetAssetsOfType(AssetClassID.TextAsset))
                 {
                     var texBase = Manager.GetBaseField(AssetFileInstance, texInfo);
                     var script = texBase["m_Script"].AsString;
                     if (script.Contains("MainDeckCardIds"))
-                        DecksInfo.Add(texInfo);
+                    {
+                        AIDecks.Add(new AIAssetDeck(texInfo, texBase));
+                    }
                 }
-                ModifyDecks();
             }
             catch
             {
                 MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        internal void ModifyDecks()
+        internal class AIAssetDeck
         {
-            foreach (AssetFileInfo DeckInfo in DecksInfo)
+            public string Name { get; set; }
+            public AssetFileInfo Info { get; set; }
+            public AssetTypeValueField Base { get; set; }
+            public string Json { get; set; }
+            internal AIAssetDeck(AssetFileInfo assetinfo, AssetTypeValueField assetbase)
             {
-                var texBase = Manager.GetBaseField(AssetFileInstance, DeckInfo);
-                texBase["m_Name"].AsString += "_MODIFIED";
-                DeckInfo.SetNewData(texBase);
-            }
-            Bundle.BlockAndDirInfo.DirectoryInfos[0].SetNewData(AssetFile);
-            using (AssetsFileWriter writer = new AssetsFileWriter(Application.StartupPath + "/data_assets.mod"))
-            {
-                Bundle.Write(writer);
+                Info = assetinfo;
+                Base = assetbase;
+                Json = assetbase["m_Script"].AsString;
+                Name = assetbase["m_Name"].AsString;
             }
         }
     }
+    
 }

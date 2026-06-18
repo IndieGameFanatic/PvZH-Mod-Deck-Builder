@@ -37,27 +37,24 @@ namespace PvZH_Mod_Deck_Builder
         {
             DeckLoader.ShowDialog();
         }
-
-        private void DeckLoader_FileOk(object sender, CancelEventArgs e)
+        void LoadDeckFromJson(string JsonDeck)
         {
-            string JsonDeck = File.ReadAllText(DeckLoader.FileName);
             try
             {
-                using JsonDocument JsonDoc = JsonDocument.Parse(JsonDeck);
-                AIDeckInfo = JsonSerializer.Deserialize<JsonAIDeck>(JsonDeck) ?? new();
-                StrategyDeckInfo = JsonSerializer.Deserialize<JsonStrategyDeck>(JsonDeck) ?? new();
-                if (JsonDoc.RootElement.TryGetProperty(nameof(JsonAIDeck.MainDeckCardIds), out _))
+                AIDeckInfo = JsonSerializer.Deserialize<JsonAIDeck>(JsonDeck);
+                StrategyDeckInfo = JsonSerializer.Deserialize<JsonStrategyDeck>(JsonDeck);
+                if (AIDeckInfo.MainDeckCardIds != null)
                 {
-                    Deck = CardsStorage.GetCardsByIDs(AIDeckInfo.MainDeckCardIds);
+                    Deck.SetCardsByIDs(AIDeckInfo.MainDeckCardIds);
                     DeckSaver.FileName = DeckLoader.FileName;
                     DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[1];
                     DeckNameTextBox.Text = AIDeckInfo.DeckName;
                     DeckUpdate(false);
                     this.Text = savedName;
                 }
-                else if (JsonDoc.RootElement.TryGetProperty(nameof(JsonStrategyDeck.Cards), out _))
+                else if (StrategyDeckInfo.Cards != null)
                 {
-                    Deck = CardsStorage.GetCardsByIDs(StrategyDeckInfo.AllCardIDs());
+                    Deck.SetCardsByIDs(StrategyDeckInfo.AllCardIDs());
                     DeckSaver.FileName = DeckLoader.FileName;
                     DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[0];
                     FactionTypeComboBox.SelectedItem = FactionTypeComboBox.Items[StrategyDeckInfo.Faction];
@@ -73,6 +70,15 @@ namespace PvZH_Mod_Deck_Builder
             catch
             {
                 MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private void DeckLoader_FileOk(object sender, CancelEventArgs e)
+        {
+            List<string> newStringList = new List<string>();
+            using (StreamReader reader = new StreamReader(DeckLoader.FileName))
+            {
+                string JsonDeck = File.ReadAllText(DeckLoader.FileName);
+                LoadDeckFromJson(JsonDeck);
             }
         }
 
@@ -278,6 +284,7 @@ namespace PvZH_Mod_Deck_Builder
                 DeckSaver.FileName = "";
                 DeckUpdate(false);
                 DeckNameTextBox.Text = "";
+                this.Text = savedName;
             }
         }
         void SearchList_PageChanged()
@@ -410,7 +417,7 @@ namespace PvZH_Mod_Deck_Builder
         }
         private void UnityAssetLoader_FileOk(object sender, CancelEventArgs e)
         {
-            UAH.LoadDecksFromBundle(UnityAssetLoader.FileName);
+            UAH.LoadDecksFromDataAssets(UnityAssetLoader.FileName);
         }
     }
 }
