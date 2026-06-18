@@ -37,6 +37,8 @@
             openCardDataToolStripMenuItem = new ToolStripMenuItem();
             loadCardDataFromFilesToolStripMenuItem = new ToolStripMenuItem();
             resetToDefaultToolStripMenuItem = new ToolStripMenuItem();
+            deckToolStripMenuItem = new ToolStripMenuItem();
+            loadDeckFromUnityAssetToolStripMenuItem = new ToolStripMenuItem();
             DeckLoader = new OpenFileDialog();
             DeckSaver = new SaveFileDialog();
             CardSearch = new RichTextBox();
@@ -66,6 +68,7 @@
             CardIDList = new ListBox();
             CardDataLoader = new OpenFileDialog();
             CardNameLoader = new OpenFileDialog();
+            UnityAssetLoader = new OpenFileDialog();
             menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)CopiesToAdd).BeginInit();
             SuspendLayout();
@@ -73,7 +76,7 @@
             // menuStrip
             // 
             menuStrip.ImageScalingSize = new Size(20, 20);
-            menuStrip.Items.AddRange(new ToolStripItem[] { filesToolStripMenuItem, openCardDataToolStripMenuItem });
+            menuStrip.Items.AddRange(new ToolStripItem[] { filesToolStripMenuItem, openCardDataToolStripMenuItem, deckToolStripMenuItem });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
             menuStrip.Size = new Size(720, 28);
@@ -139,6 +142,20 @@
             resetToDefaultToolStripMenuItem.Size = new Size(250, 26);
             resetToDefaultToolStripMenuItem.Text = "Reset to Default";
             resetToDefaultToolStripMenuItem.Click += resetToDefaultToolStripMenuItem_Click;
+            // 
+            // deckToolStripMenuItem
+            // 
+            deckToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { loadDeckFromUnityAssetToolStripMenuItem });
+            deckToolStripMenuItem.Name = "deckToolStripMenuItem";
+            deckToolStripMenuItem.Size = new Size(62, 24);
+            deckToolStripMenuItem.Text = "Decks";
+            // 
+            // loadDeckFromUnityAssetToolStripMenuItem
+            // 
+            loadDeckFromUnityAssetToolStripMenuItem.Name = "loadDeckFromUnityAssetToolStripMenuItem";
+            loadDeckFromUnityAssetToolStripMenuItem.Size = new Size(275, 26);
+            loadDeckFromUnityAssetToolStripMenuItem.Text = "Load Deck from Unity Asset";
+            loadDeckFromUnityAssetToolStripMenuItem.Click += loadDeckFromUnityAssetToolStripMenuItem_Click;
             // 
             // DeckLoader
             // 
@@ -413,12 +430,19 @@
             // CardDataLoader
             // 
             CardDataLoader.FileName = "openFileDialog1";
+            CardDataLoader.Filter = "Card Data|*.txt|Card Data|*.json|All Files|*.*";
             CardDataLoader.FileOk += CardDataLoader_FileOk;
             // 
             // CardNameLoader
             // 
             CardNameLoader.FileName = "openFileDialog1";
+            CardNameLoader.Filter = "Localized Strings|*.txt|Localized Strings|*.csv|All Files|*.*";
             CardNameLoader.FileOk += CardNameLoader_FileOk;
+            // 
+            // UnityAssetLoader
+            // 
+            UnityAssetLoader.FileName = "openFileDialog1";
+            UnityAssetLoader.FileOk += UnityAssetLoader_FileOk;
             // 
             // DeckBuilder
             // 
@@ -505,5 +529,8 @@
         private OpenFileDialog CardDataLoader;
         private OpenFileDialog CardNameLoader;
         private ToolStripMenuItem resetToDefaultToolStripMenuItem;
+        private ToolStripMenuItem deckToolStripMenuItem;
+        private ToolStripMenuItem loadDeckFromUnityAssetToolStripMenuItem;
+        private OpenFileDialog UnityAssetLoader;
     }
 }

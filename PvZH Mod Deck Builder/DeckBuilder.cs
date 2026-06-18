@@ -8,11 +8,15 @@ using System.Text.Json.Serialization;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static System.Windows.Forms.DataFormats;
 using System.Diagnostics;
+using AssetsTools.NET.Extra;
+using Microsoft.VisualBasic.Logging;
 
 namespace PvZH_Mod_Deck_Builder
 {
     public partial class DeckBuilder : Form
     {
+        string savedName = "PvZH Deck Builder for Mods";
+        string unsavedName = "(*) PvZH Deck Builder for Mods";
         // TODO: Make pages for DeckList and CardList
         JsonAIDeck AIDeckInfo;
         JsonStrategyDeck StrategyDeckInfo;
@@ -24,6 +28,7 @@ namespace PvZH_Mod_Deck_Builder
         int CurrentSearchListPage = 0;
         int CurrentDeckListPage = 0;
         int ItemsPerPage = 20;
+        UnityAssetHandler UAH = new UnityAssetHandler();
         public DeckBuilder()
         {
             InitializeComponent();
@@ -59,6 +64,7 @@ namespace PvZH_Mod_Deck_Builder
                         DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[1];
                         DeckNameTextBox.Text = AIDeckInfo.DeckName;
                         DeckUpdate(false);
+                        this.Text = savedName;
                     }
                     else if (StrategyDeckInfo.Cards != null)
                     {
@@ -68,6 +74,7 @@ namespace PvZH_Mod_Deck_Builder
                         FactionTypeComboBox.SelectedItem = FactionTypeComboBox.Items[StrategyDeckInfo.Faction];
                         DeckNameTextBox.Text = StrategyDeckInfo.m_Name;
                         DeckUpdate(false);
+                        this.Text = savedName;
                     }
                     else
                     {
@@ -85,7 +92,7 @@ namespace PvZH_Mod_Deck_Builder
         {
             if (File.Exists(DeckSaver.FileName))
             {
-                DeckSaver_FileOk();
+                DeckSaver_FileOk(sender, new());
             }
             else DeckSaver.ShowDialog();
         }
@@ -93,31 +100,6 @@ namespace PvZH_Mod_Deck_Builder
         {
             DeckSaver.FileName = "Deck.json";
             DeckSaver.ShowDialog();
-        }
-        private void DeckSaver_FileOk()
-        {
-            using (StreamWriter writer = new StreamWriter(DeckSaver.FileName))
-            {
-                if ((DeckTypeCombo.DeckType)DeckTypeComboBox.SelectedValue == DeckTypeCombo.DeckType.AI)
-                {
-                    AIDeckInfo = new();
-                    AIDeckInfo.MainDeckCardIds = Deck.GetCardsAsIDs();
-                    string JsonDeck = JsonSerializer.Serialize(AIDeckInfo);
-                    writer.Write(JsonDeck);
-                }
-                else
-                {
-                    int Faction = 0;
-                    if ((FactionTypeCombo.FactionType)FactionTypeComboBox.SelectedValue == FactionTypeCombo.FactionType.Zombies)
-                        Faction = 1;
-
-                    StrategyDeckInfo = new();
-                    StrategyDeckInfo.m_Name = DeckNameTextBox.Text;
-                    StrategyDeckInfo.Faction = Faction;
-                    string JsonDeck = StrategyDeckInfo.GetCompleteJson(Deck.Cards);
-                    writer.Write(JsonDeck);
-                }
-            }
         }
         private void DeckSaver_FileOk(object sender, CancelEventArgs e)
         {
@@ -142,6 +124,7 @@ namespace PvZH_Mod_Deck_Builder
                     string JsonDeck = StrategyDeckInfo.GetCompleteJson(Deck.Cards);
                     writer.Write(JsonDeck);
                 }
+                this.Text = savedName;
             }
         }
 
@@ -252,7 +235,9 @@ namespace PvZH_Mod_Deck_Builder
             {
                 for (int i = 0; i < CopiesToAdd.Value; i++) Deck.AddCardByID(SelectedListCardID);
                 DeckUpdate(false);
+                this.Text = unsavedName;
             }
+            
         }
         private void DeckUpdate(bool RemovingCards)
         {
@@ -310,6 +295,7 @@ namespace PvZH_Mod_Deck_Builder
             {
                 Deck.Cards.Remove(CardToRemove);
                 DeckUpdate(true);
+                this.Text = unsavedName;
             }
         }
         private void CardRemoverAll_Click(object sender, EventArgs e)
@@ -318,6 +304,7 @@ namespace PvZH_Mod_Deck_Builder
             {
                 Deck.Cards.RemoveAll(x => x.ID == SelectedDeckCardID);
                 DeckUpdate(true);
+                this.Text = unsavedName;
             }
         }
         private void DeckList_SelectedIndexChanged()
@@ -442,7 +429,14 @@ namespace PvZH_Mod_Deck_Builder
                 {
                     string CardDataJson = File.ReadAllText(CardDataLoader.FileName);
                     CardDataHandler.LoadedCardData = JsonSerializer.Deserialize<Dictionary<string, CardDataHandler.CardData>>(CardDataJson);
-                    CardNameLoader.ShowDialog();
+                    if (CardDataHandler.LoadedCardData.Values.Count > 0)
+                    {
+                        CardNameLoader.ShowDialog();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Invalid Card Data!");
+                    }
                 }
                 catch
                 {
@@ -469,6 +463,15 @@ namespace PvZH_Mod_Deck_Builder
             Deck.ForceUniqueCardsUpdate();
             DeckUpdate(false);
             CardSearch_TextChanged(sender, e);
+        }
+
+        private void loadDeckFromUnityAssetToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UnityAssetLoader.ShowDialog();
+        }
+        private void UnityAssetLoader_FileOk(object sender, CancelEventArgs e)
+        {
+            UAH.LoadDecksFromBundle(UnityAssetLoader.FileName);
         }
     }
     public struct DeckTypeCombo
