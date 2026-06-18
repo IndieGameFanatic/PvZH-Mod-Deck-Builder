@@ -153,8 +153,8 @@
             // loadDeckFromUnityAssetToolStripMenuItem
             // 
             loadDeckFromUnityAssetToolStripMenuItem.Name = "loadDeckFromUnityAssetToolStripMenuItem";
-            loadDeckFromUnityAssetToolStripMenuItem.Size = new Size(275, 26);
-            loadDeckFromUnityAssetToolStripMenuItem.Text = "Load Deck from Unity Asset";
+            loadDeckFromUnityAssetToolStripMenuItem.Size = new Size(289, 26);
+            loadDeckFromUnityAssetToolStripMenuItem.Text = "Load Decks from 'data_assets'";
             loadDeckFromUnityAssetToolStripMenuItem.Click += loadDeckFromUnityAssetToolStripMenuItem_Click;
             // 
             // DeckLoader
