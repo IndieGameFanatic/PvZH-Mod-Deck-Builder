@@ -1,15 +1,6 @@
 using System.ComponentModel;
-using System.Data;
-using System.Diagnostics.Eventing.Reader;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static System.Windows.Forms.DataFormats;
 using System.Diagnostics;
-using AssetsTools.NET.Extra;
-using Microsoft.VisualBasic.Logging;
+using System.Text.Json;
 
 namespace PvZH_Mod_Deck_Builder
 {
@@ -18,8 +9,8 @@ namespace PvZH_Mod_Deck_Builder
         string savedName = "PvZH Deck Builder for Mods";
         string unsavedName = "(*) PvZH Deck Builder for Mods";
         // TODO: Make pages for DeckList and CardList
-        JsonAIDeck AIDeckInfo;
-        JsonStrategyDeck StrategyDeckInfo;
+        JsonAIDeck AIDeckInfo = new();
+        JsonStrategyDeck StrategyDeckInfo = new();
         EditableDeck Deck = new();
         public BindingList<CardItem> CurrentCardItems = [];
         List<CardItem> SearchedCards = [];
@@ -49,15 +40,12 @@ namespace PvZH_Mod_Deck_Builder
 
         private void DeckLoader_FileOk(object sender, CancelEventArgs e)
         {
-            List<string> newStringList = new List<string>();
-            using (StreamReader reader = new StreamReader(DeckLoader.FileName))
+            string JsonDeck = File.ReadAllText(DeckLoader.FileName);
+            try
             {
-                string JsonDeck = File.ReadAllText(DeckLoader.FileName);
-                try
-                {
-                    AIDeckInfo = JsonSerializer.Deserialize<JsonAIDeck>(JsonDeck);
-                    StrategyDeckInfo = JsonSerializer.Deserialize<JsonStrategyDeck>(JsonDeck);
-                    if (AIDeckInfo.MainDeckCardIds != null)
+                    AIDeckInfo = JsonSerializer.Deserialize<JsonAIDeck>(JsonDeck) ?? new();
+                    StrategyDeckInfo = JsonSerializer.Deserialize<JsonStrategyDeck>(JsonDeck) ?? new();
+                    if (AIDeckInfo.MainDeckCardIds.Length > 0)
                     {
                         Deck.SetCardsByIDs(AIDeckInfo.MainDeckCardIds);
                         DeckSaver.FileName = DeckLoader.FileName;
@@ -85,7 +73,6 @@ namespace PvZH_Mod_Deck_Builder
                 {
                     MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
@@ -103,29 +90,22 @@ namespace PvZH_Mod_Deck_Builder
         }
         private void DeckSaver_FileOk(object sender, CancelEventArgs e)
         {
-            using (StreamWriter writer = new StreamWriter(DeckSaver.FileName))
+            string JsonDeck;
+            if (DeckTypeComboBox.SelectedIndex == 1)
             {
-                if ((DeckTypeCombo.DeckType)DeckTypeComboBox.SelectedValue == DeckTypeCombo.DeckType.AI)
-                {
-                    AIDeckInfo = new();
-                    AIDeckInfo.MainDeckCardIds = Deck.GetCardsAsIDs();
-                    string JsonDeck = JsonSerializer.Serialize(AIDeckInfo);
-                    writer.Write(JsonDeck);
-                }
-                else
-                {
-                    int Faction = 0;
-                    if ((FactionTypeCombo.FactionType)FactionTypeComboBox.SelectedValue == FactionTypeCombo.FactionType.Zombies)
-                        Faction = 1;
-
-                    StrategyDeckInfo = new();
-                    StrategyDeckInfo.m_Name = DeckNameTextBox.Text;
-                    StrategyDeckInfo.Faction = Faction;
-                    string JsonDeck = StrategyDeckInfo.GetCompleteJson(Deck.Cards);
-                    writer.Write(JsonDeck);
-                }
-                this.Text = savedName;
+                AIDeckInfo = new();
+                AIDeckInfo.MainDeckCardIds = Deck.Cards.Select(card => card.ID).ToArray();
+                JsonDeck = JsonSerializer.Serialize(AIDeckInfo);
             }
+            else
+            {
+                StrategyDeckInfo = new();
+                StrategyDeckInfo.m_Name = DeckNameTextBox.Text;
+                StrategyDeckInfo.Faction = FactionTypeComboBox.SelectedIndex == 1 ? 1 : 0;
+                JsonDeck = StrategyDeckInfo.GetCompleteJson(Deck.Cards);
+            }
+            File.WriteAllText(DeckSaver.FileName, JsonDeck);
+            this.Text = savedName;
         }
 
         private void SearchList_SelectedIndexChanged(object sender, EventArgs e)
@@ -147,23 +127,13 @@ namespace PvZH_Mod_Deck_Builder
         }
         void InitializeCombos()
         {
-            BindingList<DeckTypeCombo> DeckTypeList =
-            [
-                new DeckTypeCombo("Strategy", DeckTypeCombo.DeckType.Strategy),
-                new DeckTypeCombo("AI", DeckTypeCombo.DeckType.AI)
-            ];
-            DeckTypeComboBox.DataSource = DeckTypeList;
-            DeckTypeComboBox.DisplayMember = "Name";
-            DeckTypeComboBox.ValueMember = "Type";
+            DeckTypeComboBox.Items.Clear();
+            DeckTypeComboBox.Items.AddRange(["Strategy", "AI"]);
+            DeckTypeComboBox.SelectedIndex = 0;
 
-            BindingList<FactionTypeCombo> FactionTypeList =
-            [
-                new FactionTypeCombo("Plants", FactionTypeCombo.FactionType.Plants),
-                new FactionTypeCombo("Zombies", FactionTypeCombo.FactionType.Zombies)
-            ];
-            FactionTypeComboBox.DataSource = FactionTypeList;
-            FactionTypeComboBox.DisplayMember = "Name";
-            FactionTypeComboBox.ValueMember = "Faction";
+            FactionTypeComboBox.Items.Clear();
+            FactionTypeComboBox.Items.AddRange(["Plants", "Zombies"]);
+            FactionTypeComboBox.SelectedIndex = 0;
         }
 
         private void CardSearch_TextChanged(object sender, EventArgs e)
@@ -181,11 +151,7 @@ namespace PvZH_Mod_Deck_Builder
 
             foreach (CardItem Card in CardsStorage.AllCardItems)
             {
-                string CardName = Card.Name.ToLower();
-                int CardID = Card.ID;
-
-                string SearchText = CardSearch.Text.ToLower();
-                if (CardName.Contains(SearchText) || int.TryParse(SearchText, out int ParsedID) && ParsedID == Card.ID)
+                if (Card.Name.Contains(CardSearch.Text, StringComparison.OrdinalIgnoreCase) || int.TryParse(CardSearch.Text, out int ParsedID) && ParsedID == Card.ID)
                 {
                     SearchedCards.Add(Card);
                 }
@@ -218,7 +184,7 @@ namespace PvZH_Mod_Deck_Builder
         }
         void SetDeckListPageLabel()
         {
-            if (Deck.UniqueCards().Count < 1)
+            if (!UniqueDeckCards().Any())
             {
                 DeckListPageLabel.Text = "0/0";
             }
@@ -233,55 +199,36 @@ namespace PvZH_Mod_Deck_Builder
         {
             if (SelectedListCardID > 0)
             {
-                for (int i = 0; i < CopiesToAdd.Value; i++) Deck.AddCardByID(SelectedListCardID);
+                for (int i = 0; i < CopiesToAdd.Value; i++) Deck.Cards.Add(EditableDeck.GetCardByID(SelectedListCardID));
                 DeckUpdate(false);
                 this.Text = unsavedName;
             }
             
         }
+        IEnumerable<CardItem> UniqueDeckCards() => Deck.Cards.DistinctBy(x => x.ID);
         private void DeckUpdate(bool RemovingCards)
         {
             Deck.Cards = Deck.Cards.OrderBy(x => x.ID).ToList();
-            CopiesList.Items.Clear();
             CurrentDeckListPage = Math.Clamp(CurrentDeckListPage, 0, NumOfDeckPages());
-            SetDeckListPageLabel();
+            Deck_PageChanged();
 
-            List<CardItem> CardsToDisplay =
-                Deck.UniqueCards().Skip(ItemsPerPage * CurrentDeckListPage).Take(ItemsPerPage).ToList();
-
-            foreach (CardItem Card in CardsToDisplay)
-                CopiesList.Items.Add("×" + Deck.CopiesOfCard(Card).ToString());
-
-            CardCount.Text = "×" + Deck.Cards.Count.ToString();
-            bool UCC = Deck.UniqueCardsUpdated();
-            if (UCC)
+            if (RemovingCards && DeckList.Items.Count > 0)
             {
-                DisplayedDeckCards.Clear();
-
-                foreach (CardItem Card in CardsToDisplay)
-                    DisplayedDeckCards.Add(EditableDeck.GetCardByID(Card.ID));
-
-                if (RemovingCards && DeckList.Items.Count > 0)
-                {
-                    DeckList.SelectedItem = DeckList.Items[^1];
-                    DeckList_SelectedIndexChanged();
-                }
-                else DeckList.SelectedItem = null;
+                DeckList.SelectedItem = DeckList.Items[^1];
+                DeckList_SelectedIndexChanged();
             }
         }
         private void Deck_PageChanged()
         {
             CopiesList.Items.Clear();
             DisplayedDeckCards.Clear();
+            CardCount.Text = "×" + Deck.Cards.Count.ToString();
 
-            List<CardItem> CardsToDisplay =
-                Deck.UniqueCards().Skip(ItemsPerPage * CurrentDeckListPage).Take(ItemsPerPage).ToList();
-
-            foreach (CardItem Card in CardsToDisplay)
-                CopiesList.Items.Add("×" + Deck.CopiesOfCard(Card).ToString());
-
-            foreach (CardItem Card in CardsToDisplay)
+            foreach (CardItem Card in UniqueDeckCards().Skip(ItemsPerPage * CurrentDeckListPage).Take(ItemsPerPage))
+            {
+                CopiesList.Items.Add("×" + Deck.Cards.Count(x => x.ID == Card.ID).ToString());
                 DisplayedDeckCards.Add(EditableDeck.GetCardByID(Card.ID));
+            }
 
             SetDeckListPageLabel();
             DeckList.SelectedItem = null;
@@ -374,7 +321,7 @@ namespace PvZH_Mod_Deck_Builder
 
         private void DeckListScrollLeft_Click(object sender, EventArgs e)
         {
-            if (Deck.UniqueCards().Count > ItemsPerPage)
+            if (UniqueDeckCards().Count() > ItemsPerPage)
             {
                 int NewPage = Math.Max(CurrentDeckListPage - 1, 0);
                 if (CurrentDeckListPage != NewPage)
@@ -386,11 +333,11 @@ namespace PvZH_Mod_Deck_Builder
         }
         int NumOfDeckPages()
         {
-            return Math.Max(0, (int)Math.Floor((Deck.UniqueCards().Count - 1) / (float)ItemsPerPage));
+            return Math.Max(0, (int)Math.Floor((UniqueDeckCards().Count() - 1) / (float)ItemsPerPage));
         }
         private void DeckListScrollRight_Click(object sender, EventArgs e)
         {
-            if (Deck.UniqueCards().Count > ItemsPerPage)
+            if (UniqueDeckCards().Count() > ItemsPerPage)
             {
                 int NewPage = Math.Min(CurrentDeckListPage + 1, NumOfDeckPages());
                 if (CurrentDeckListPage != NewPage)
@@ -403,12 +350,9 @@ namespace PvZH_Mod_Deck_Builder
 
         private void DeckTypeComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (DeckTypeComboBox.SelectedValue is DeckTypeCombo.DeckType)
-            {
-                bool IsStrategyDeck = (DeckTypeCombo.DeckType)DeckTypeComboBox.SelectedValue == DeckTypeCombo.DeckType.Strategy;
-                DeckNameTextBox.Enabled = IsStrategyDeck;
-                FactionTypeComboBox.Enabled = IsStrategyDeck;
-            }
+            bool IsStrategyDeck = DeckTypeComboBox.SelectedIndex == 0;
+            DeckNameTextBox.Enabled = IsStrategyDeck;
+            FactionTypeComboBox.Enabled = IsStrategyDeck;
         }
 
         private void openCardDataLocationToolStripMenuItem_Click(object sender, EventArgs e)
@@ -423,44 +367,36 @@ namespace PvZH_Mod_Deck_Builder
 
         private void CardDataLoader_FileOk(object sender, CancelEventArgs e)
         {
-            using (StreamReader reader = new StreamReader(CardDataLoader.FileName))
+            try
             {
-                try
+                string CardDataJson = File.ReadAllText(CardDataLoader.FileName);
+                CardDataHandler.LoadedCardData = JsonSerializer.Deserialize<Dictionary<string, CardDataHandler.CardData>>(CardDataJson) ?? [];
+                if (CardDataHandler.LoadedCardData.Values.Count > 0)
                 {
-                    string CardDataJson = File.ReadAllText(CardDataLoader.FileName);
-                    CardDataHandler.LoadedCardData = JsonSerializer.Deserialize<Dictionary<string, CardDataHandler.CardData>>(CardDataJson);
-                    if (CardDataHandler.LoadedCardData.Values.Count > 0)
-                    {
-                        CardNameLoader.ShowDialog();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Invalid Card Data!");
-                    }
+                    CardNameLoader.ShowDialog();
                 }
-                catch
+                else
                 {
-                    MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Invalid Card Data!");
                 }
+            }
+            catch
+            {
+                MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void CardNameLoader_FileOk(object sender, CancelEventArgs e)
         {
-            using (StreamReader reader = new StreamReader(CardNameLoader.FileName))
-            {
-                string[] lines = File.ReadAllLines(CardNameLoader.FileName);
-                CardsStorage.SetCustomCards(lines);
-                Deck.ForceUniqueCardsUpdate();
-                DeckUpdate(false);
-                CardSearch_TextChanged(sender, e);
-            }
+            string[] lines = File.ReadAllLines(CardNameLoader.FileName);
+            CardsStorage.SetCustomCards(lines);
+            DeckUpdate(false);
+            CardSearch_TextChanged(sender, e);
         }
 
         private void resetToDefaultToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CardsStorage.LoadDefaultCards();
-            Deck.ForceUniqueCardsUpdate();
             DeckUpdate(false);
             CardSearch_TextChanged(sender, e);
         }
@@ -472,31 +408,6 @@ namespace PvZH_Mod_Deck_Builder
         private void UnityAssetLoader_FileOk(object sender, CancelEventArgs e)
         {
             UAH.LoadDecksFromBundle(UnityAssetLoader.FileName);
-        }
-    }
-    public struct DeckTypeCombo
-    {
-        public string Name { get; set; } = "";
-        public DeckType Type { get; set; }
-        public enum DeckType { Strategy, AI };
-
-        public DeckTypeCombo(string name, DeckType type)
-        {
-            Name = name;
-            Type = type;
-        }
-    }
-    public struct FactionTypeCombo
-    {
-        public string Name { get; set; } = "";
-
-        public FactionType Faction { get; set; }
-        public enum FactionType { Plants, Zombies }
-
-        public FactionTypeCombo(string name, FactionType type) 
-        {
-            Name = name;
-            Faction = type;
         }
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AssetsTools;
+﻿using AssetsTools;
 using AssetsTools.NET;
 using AssetsTools.NET.Extra;
 
@@ -10,10 +7,10 @@ namespace PvZH_Mod_Deck_Builder
     internal class UnityAssetHandler
     {
         AssetsManager Manager = new AssetsManager();
-        BundleFileInstance BundleInstance;
-        AssetBundleFile Bundle;
-        AssetsFileInstance AssetFileInstance;
-        AssetsFile AssetFile;
+        BundleFileInstance BundleInstance = null!;
+        AssetBundleFile Bundle = null!;
+        AssetsFileInstance AssetFileInstance = null!;
+        AssetsFile AssetFile = null!;
         List<AssetFileInfo> DecksInfo = [];
         internal void LoadDecksFromBundle(string FilePath)
         {
