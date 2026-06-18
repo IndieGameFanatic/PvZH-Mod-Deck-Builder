@@ -1,8 +1,12 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Text.Json;
+using HtmlAgilityPack;
 
 namespace PvZH_Mod_Deck_Builder
 {
-    internal static class CardsStorage
+    internal struct CardsStorage
     {
         static public List<CardItem> DefaultAllCardItems =
         [
@@ -589,24 +593,14 @@ namespace PvZH_Mod_Deck_Builder
             new CardItem(691, "Veloci-Radish Hatchling", "Veloci-Radish Solo")
         ];
         public static List<CardItem> AllCardItems = [];
-        public static string PathToFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PvZH Deck Builder");
-
+        static string PathToLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        public static string PathToFolder = PathToLocal + "\\PvZH Deck Builder";
+        public static string PathToAllCards = PathToFolder + "\\AllCardData.json";
+        
         public static void LoadDefaultCards()
         {
-            AllCardItems = DefaultAllCardItems.ToList();
-        }
-        public static CardItem GetCardByID(int id)
-        {
-            CardItem card = AllCardItems.Find(x => x.ID == id);
-            if (card.ID > 0) return card;
-
-            card = new CardItem(id, "MISSING_CARD_" + id, "MISSING_GUID_" + id);
-            AllCardItems.Add(card);
-            return card;
-        }
-        public static List<CardItem> GetCardsByIDs(int[] ids)
-        {
-            return ids.Order().Select(GetCardByID).ToList();
+            AllCardItems.Clear();
+            foreach (CardItem Card in DefaultAllCardItems) AllCardItems.Add(Card);
         }
         public static void SetCustomCards(string[] lines)
         {
@@ -615,13 +609,14 @@ namespace PvZH_Mod_Deck_Builder
             {
                 string prefabname = CardDataHandler.LoadedCardData[CDK].prefabName;
                 string CSVSearcher = prefabname + "_name";
-                string? nameline = lines.FirstOrDefault(x => x.StartsWith(CSVSearcher));
+                List<string> lineslist = lines.ToList();
+                string nameline = lineslist.Find(x => x.StartsWith(CSVSearcher));
                 if (nameline != null)
                 {
                     int id = int.Parse(CDK);
                     string cardname = nameline.Split(',')[1];
                     cardname = cardname.Replace(" ", "!-spckey-!");
-                    cardname = System.Text.RegularExpressions.Regex.Replace(WebUtility.HtmlDecode(cardname), "<.*?>", "");
+                    cardname = ReadSharp.HtmlUtilities.ConvertToPlainText(cardname);
                     cardname = cardname.Replace("!-spckey-!", " ");
                     AllCardItems.Add(new CardItem(id, cardname, prefabname));
                 }
