@@ -45,7 +45,7 @@ namespace PvZH_Mod_Deck_Builder
                 StrategyDeckInfo = JsonSerializer.Deserialize<JsonStrategyDeck>(JsonDeck);
                 if (AIDeckInfo.MainDeckCardIds != null)
                 {
-                    Deck.SetCardsByIDs(AIDeckInfo.MainDeckCardIds);
+                    Deck = CardsStorage.GetCardsByIDs(AIDeckInfo.MainDeckCardIds);
                     DeckSaver.FileName = DeckLoader.FileName;
                     DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[1];
                     DeckNameTextBox.Text = AIDeckInfo.DeckName;
@@ -54,7 +54,7 @@ namespace PvZH_Mod_Deck_Builder
                 }
                 else if (StrategyDeckInfo.Cards != null)
                 {
-                    Deck.SetCardsByIDs(StrategyDeckInfo.AllCardIDs());
+                    Deck = CardsStorage.GetCardsByIDs(StrategyDeckInfo.AllCardIDs());
                     DeckSaver.FileName = DeckLoader.FileName;
                     DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[0];
                     FactionTypeComboBox.SelectedItem = FactionTypeComboBox.Items[StrategyDeckInfo.Faction];
