@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AssetsTools;
+﻿using AssetsTools;
 using AssetsTools.NET;
 using AssetsTools.NET.Extra;
 
