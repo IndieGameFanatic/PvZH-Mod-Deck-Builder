@@ -43,37 +43,37 @@ namespace PvZH_Mod_Deck_Builder
             string JsonDeck = File.ReadAllText(DeckLoader.FileName);
             try
             {
-                    using JsonDocument JsonDoc = JsonDocument.Parse(JsonDeck);
-                    AIDeckInfo = JsonSerializer.Deserialize<JsonAIDeck>(JsonDeck) ?? new();
-                    StrategyDeckInfo = JsonSerializer.Deserialize<JsonStrategyDeck>(JsonDeck) ?? new();
-                    if (JsonDoc.RootElement.TryGetProperty(nameof(JsonAIDeck.MainDeckCardIds), out _))
-                    {
-                        Deck = CardsStorage.GetCardsByIDs(AIDeckInfo.MainDeckCardIds);
-                        DeckSaver.FileName = DeckLoader.FileName;
-                        DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[1];
-                        DeckNameTextBox.Text = AIDeckInfo.DeckName;
-                        DeckUpdate(false);
-                        this.Text = savedName;
-                    }
-                    else if (JsonDoc.RootElement.TryGetProperty(nameof(JsonStrategyDeck.Cards), out _))
-                    {
-                        Deck = CardsStorage.GetCardsByIDs(StrategyDeckInfo.AllCardIDs());
-                        DeckSaver.FileName = DeckLoader.FileName;
-                        DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[0];
-                        FactionTypeComboBox.SelectedItem = FactionTypeComboBox.Items[StrategyDeckInfo.Faction];
-                        DeckNameTextBox.Text = StrategyDeckInfo.m_Name;
-                        DeckUpdate(false);
-                        this.Text = savedName;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Invalid JSON File!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                catch
+                using JsonDocument JsonDoc = JsonDocument.Parse(JsonDeck);
+                AIDeckInfo = JsonSerializer.Deserialize<JsonAIDeck>(JsonDeck) ?? new();
+                StrategyDeckInfo = JsonSerializer.Deserialize<JsonStrategyDeck>(JsonDeck) ?? new();
+                if (JsonDoc.RootElement.TryGetProperty(nameof(JsonAIDeck.MainDeckCardIds), out _))
                 {
-                    MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Deck = CardsStorage.GetCardsByIDs(AIDeckInfo.MainDeckCardIds);
+                    DeckSaver.FileName = DeckLoader.FileName;
+                    DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[1];
+                    DeckNameTextBox.Text = AIDeckInfo.DeckName;
+                    DeckUpdate(false);
+                    this.Text = savedName;
                 }
+                else if (JsonDoc.RootElement.TryGetProperty(nameof(JsonStrategyDeck.Cards), out _))
+                {
+                    Deck = CardsStorage.GetCardsByIDs(StrategyDeckInfo.AllCardIDs());
+                    DeckSaver.FileName = DeckLoader.FileName;
+                    DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[0];
+                    FactionTypeComboBox.SelectedItem = FactionTypeComboBox.Items[StrategyDeckInfo.Faction];
+                    DeckNameTextBox.Text = StrategyDeckInfo.m_Name;
+                    DeckUpdate(false);
+                    this.Text = savedName;
+                }
+                else
+                {
+                    MessageBox.Show("Invalid JSON File!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch
+            {
+                MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
@@ -204,7 +204,7 @@ namespace PvZH_Mod_Deck_Builder
                 DeckUpdate(false);
                 this.Text = unsavedName;
             }
-            
+
         }
         IEnumerable<CardItem> UniqueDeckCards() => Deck.DistinctBy(x => x.ID);
         private void DeckUpdate(bool RemovingCards)

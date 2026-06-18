@@ -11,8 +11,8 @@ namespace PvZH_Mod_Deck_Builder
     {
         public CardsObj Cards { get; set; } = new();
         public int Faction { get; set; }
-        
-        public string m_Name {  get; set; } = "";
+
+        public string m_Name { get; set; } = "";
         internal class CardsObj
         {
             public CardEntriesObj CardEntries { get; set; } = new();

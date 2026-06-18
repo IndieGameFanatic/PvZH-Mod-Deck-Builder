@@ -590,7 +590,7 @@ namespace PvZH_Mod_Deck_Builder
         ];
         public static List<CardItem> AllCardItems = [];
         public static string PathToFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PvZH Deck Builder");
-        
+
         public static void LoadDefaultCards()
         {
             AllCardItems = DefaultAllCardItems.ToList();
