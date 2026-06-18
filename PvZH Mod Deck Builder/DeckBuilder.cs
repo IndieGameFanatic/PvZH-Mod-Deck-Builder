@@ -238,11 +238,13 @@ namespace PvZH_Mod_Deck_Builder
 
         private void CardRemover_Click(object sender, EventArgs e)
         {
+            int CardIDToRemove = SelectedDeckCardID;
             CardItem CardToRemove = Deck.Cards.Find(x => x.ID == SelectedDeckCardID);
             if (SelectedDeckCardID > 0 && CardToRemove.ID > 0)
             {
                 Deck.Cards.Remove(CardToRemove);
                 DeckUpdate(true);
+                if (Deck.Cards.Any(x => x.ID == CardIDToRemove)) DeckList.SelectedValue = CardIDToRemove;
                 this.Text = unsavedName;
             }
         }
