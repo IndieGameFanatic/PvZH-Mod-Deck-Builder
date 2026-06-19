@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace PvZH_Mod_Deck_Builder
@@ -27,10 +28,28 @@ namespace PvZH_Mod_Deck_Builder
 
         private void DeckBuilder_Load(object sender, EventArgs e)
         {
-            CardsStorage.LoadDefaultCards();
+            InitializeCardData();
             InitializeAllCards();
             InitializeDeck();
             InitializeCombos();
+        }
+        void InitializeCardData()
+        {
+            string folderpath = Path.Combine(Application.StartupPath, "autoload");
+            string datapath = Path.Combine(folderpath, "cards.txt");
+            string namepath = Path.Combine(folderpath, "localizedstrings.txt");
+            if (!File.Exists(datapath) || !File.Exists(namepath))
+            {
+                MessageBox.Show("'cards.txt' and/or 'localizedstrings.txt' in 'autoload' folder are missing, " +
+                    "so no cards can be loaded!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            string jsondata = File.ReadAllText(datapath);
+            LoadCardDataFromJson(jsondata, out _);
+            string[] jsonnames = File.ReadAllLines(namepath);
+            CardsStorage.SetCustomCards(jsonnames);
+            DeckUpdate(false);
+            CardSearch_TextChanged(new(), new());
         }
 
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
@@ -377,13 +396,19 @@ namespace PvZH_Mod_Deck_Builder
 
         private void CardDataLoader_FileOk(object sender, CancelEventArgs e)
         {
+            string CardDataJson = File.ReadAllText(CardDataLoader.FileName);
+            LoadCardDataFromJson(CardDataJson, out bool success);
+            if (success) CardNameLoader.ShowDialog();
+        }
+        void LoadCardDataFromJson(string JsonData, out bool success)
+        {
+            success = false;
             try
             {
-                string CardDataJson = File.ReadAllText(CardDataLoader.FileName);
-                CardDataHandler.LoadedCardData = JsonSerializer.Deserialize<Dictionary<string, CardDataHandler.CardData>>(CardDataJson) ?? [];
+                CardDataHandler.LoadedCardData = JsonSerializer.Deserialize<Dictionary<string, CardDataHandler.CardData>>(JsonData) ?? [];
                 if (CardDataHandler.LoadedCardData.Values.Count > 0)
                 {
-                    CardNameLoader.ShowDialog();
+                    success = true;
                 }
                 else
                 {
@@ -406,9 +431,7 @@ namespace PvZH_Mod_Deck_Builder
 
         private void resetToDefaultToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CardsStorage.LoadDefaultCards();
-            DeckUpdate(false);
-            CardSearch_TextChanged(sender, e);
+            InitializeCardData();
         }
 
         private void loadDeckFromUnityAssetToolStripMenuItem_Click(object sender, EventArgs e)
@@ -417,7 +440,8 @@ namespace PvZH_Mod_Deck_Builder
         }
         private void UnityAssetLoader_FileOk(object sender, CancelEventArgs e)
         {
-            UAH.LoadDecksFromDataAssets(UnityAssetLoader.FileName);
+            UAH.LoadDecksFromDataAssets(UnityAssetLoader.FileName, out bool success);
+            if (success) MessageBox.Show("Yippee!");
         }
     }
 }

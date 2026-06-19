@@ -183,7 +183,6 @@
             SearchList.DisplayMember = "Name";
             SearchList.Font = new Font("Arial", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             SearchList.FormattingEnabled = true;
-            SearchList.Items.AddRange(new object[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" });
             SearchList.Location = new Point(79, 152);
             SearchList.Margin = new Padding(25, 3, 3, 3);
             SearchList.Name = "SearchList";

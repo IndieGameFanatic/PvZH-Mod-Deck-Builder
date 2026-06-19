@@ -14,9 +14,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="autoload\cards.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="autoload\localizedstrings.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="classdata.tpk">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="autoload\" />
   </ItemGroup>
 
 </Project>

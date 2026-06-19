@@ -12,8 +12,9 @@ namespace PvZH_Mod_Deck_Builder
         AssetsFileInstance AssetFileInstance;
         AssetsFile AssetFile;
         List<AIAssetDeck> AIDecks = [];
-        internal void LoadDecksFromDataAssets(string FilePath)
+        internal void LoadDecksFromDataAssets(string FilePath, out bool success)
         {
+            success = false;
             try
             {
                 BundleInstance = Manager.LoadBundleFile(FilePath, true);
@@ -21,14 +22,18 @@ namespace PvZH_Mod_Deck_Builder
                 AssetFileInstance = Manager.LoadAssetsFileFromBundle(BundleInstance, 0, false);
                 AssetFile = AssetFileInstance.file;
                 AIDecks.Clear();
-                foreach (var texInfo in AssetFile.GetAssetsOfType(AssetClassID.TextAsset))
+                if (AssetFile.GetAssetsOfType(AssetClassID.TextAsset).Count > 0)
                 {
-                    var texBase = Manager.GetBaseField(AssetFileInstance, texInfo);
-                    var script = texBase["m_Script"].AsString;
-                    if (script.Contains("MainDeckCardIds"))
+                    foreach (var texInfo in AssetFile.GetAssetsOfType(AssetClassID.TextAsset))
                     {
-                        AIDecks.Add(new AIAssetDeck(texInfo, texBase));
+                        var texBase = Manager.GetBaseField(AssetFileInstance, texInfo);
+                        var script = texBase["m_Script"].AsString;
+                        if (script.Contains("MainDeckCardIds"))
+                        {
+                            AIDecks.Add(new AIAssetDeck(texInfo, texBase));
+                        }
                     }
+                    success = true;
                 }
             }
             catch
