@@ -9,18 +9,27 @@ namespace PvZH_Mod_Deck_Builder
     {
         string savedName = "PvZH Deck Builder for Mods";
         string unsavedName = "(*) PvZH Deck Builder for Mods";
+        BundleDeck CurrentBundleDeck = null;
         // TODO: Make pages for DeckList and CardList
-        JsonAIDeck AIDeckInfo = new();
-        JsonStrategyDeck StrategyDeckInfo = new();
-        List<CardItem> Deck = [];
-        public BindingList<CardItem> CurrentCardItems = [];
-        List<CardItem> SearchedCards = [];
         int SelectedListCardID = -1;
         int SelectedDeckCardID = -1;
-        int CurrentSearchListPage = 0;
-        int CurrentDeckListPage = 0;
         int ItemsPerPage = 20;
+        Size noBundleSize = new Size(712, 647);
+        Size withBundleSize = new Size(1054, 647);
         UnityAssetHandler UAH = new UnityAssetHandler();
+
+        List<CardItem> Deck = [];
+        List<CardItem> SearchedCards = [];
+        List<BundleDeck> AllBundleDecks = [];
+
+        public BindingList<CardItem> DisplayedSearchedCards = [];
+        BindingList<CardItem> DisplayedDeckCards { get; set; } = [];
+        BindingList<BundleDeck> DisplayedBundleDecks = [];
+
+        int CurrentCardSearchPage = 0;
+        int CurrentDeckListPage = 0;
+        int CurrentDeckSearchPage = 0;
+
         public DeckBuilder()
         {
             InitializeComponent();
@@ -29,9 +38,9 @@ namespace PvZH_Mod_Deck_Builder
         private void DeckBuilder_Load(object sender, EventArgs e)
         {
             InitializeCardData();
-            InitializeAllCards();
-            InitializeDeck();
+            InitializeDataSources();
             InitializeCombos();
+            this.Size = noBundleSize;
         }
         void InitializeCardData()
         {
@@ -63,26 +72,19 @@ namespace PvZH_Mod_Deck_Builder
         {
             try
             {
-                AIDeckInfo = JsonSerializer.Deserialize<JsonAIDeck>(JsonDeck);
-                StrategyDeckInfo = JsonSerializer.Deserialize<JsonStrategyDeck>(JsonDeck);
+                AllBundleDecks.Clear();
+                DisplayedBundleDecks.Clear();
+                JsonAIDeck AIDeckInfo = JsonSerializer.Deserialize<JsonAIDeck>(JsonDeck);
+                JsonStrategyDeck StrategyDeckInfo = JsonSerializer.Deserialize<JsonStrategyDeck>(JsonDeck);
                 if (AIDeckInfo.MainDeckCardIds != null)
                 {
-                    Deck = CardsStorage.GetCardsByIDs(AIDeckInfo.MainDeckCardIds);
-                    DeckSaver.FileName = DeckLoader.FileName;
-                    DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[1];
-                    DeckNameTextBox.Text = AIDeckInfo.DeckName;
-                    DeckUpdate(false);
-                    this.Text = savedName;
+                    var Cards = CardsStorage.GetCardsByIDs(AIDeckInfo.MainDeckCardIds);
+                    LoadAIDeck(Cards);
                 }
                 else if (StrategyDeckInfo.Cards != null)
                 {
-                    Deck = CardsStorage.GetCardsByIDs(StrategyDeckInfo.AllCardIDs());
-                    DeckSaver.FileName = DeckLoader.FileName;
-                    DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[0];
-                    FactionTypeComboBox.SelectedItem = FactionTypeComboBox.Items[StrategyDeckInfo.Faction];
-                    DeckNameTextBox.Text = StrategyDeckInfo.m_Name;
-                    DeckUpdate(false);
-                    this.Text = savedName;
+                    var Cards = CardsStorage.GetCardsByIDs(StrategyDeckInfo.AllCardIDs());
+                    LoadStrategyDeck(Cards, StrategyDeckInfo.m_Name, StrategyDeckInfo.Faction);
                 }
                 else
                 {
@@ -93,6 +95,51 @@ namespace PvZH_Mod_Deck_Builder
             {
                 MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+        void LoadAIDeck(List<CardItem> Cards)
+        {
+            Deck = Cards;
+            DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[1];
+            DeckNameTextBox.Text = "";
+            CurrentDeckListPage = 0;
+            CurrentBundleDeck = null;
+            DeckUpdate(false);
+            DeckSearch.Enabled = false;
+            DeckSearchList.Enabled = false;
+            DeckTypeComboBox.Enabled = true;
+            this.Text = savedName;
+            this.Size = noBundleSize;
+            DeckSaver.FileName = DeckLoader.FileName;
+        }
+        void LoadStrategyDeck(List<CardItem> Cards, string Name, int Faction)
+        {
+            Deck = Cards;
+            DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[0];
+            FactionTypeComboBox.SelectedItem = FactionTypeComboBox.Items[Faction];
+            DeckNameTextBox.Text = Name;
+            CurrentDeckListPage = 0;
+            CurrentBundleDeck = null;
+            DeckUpdate(false);
+            DeckSearch.Enabled = false;
+            DeckSearchList.Enabled = false;
+            DeckTypeComboBox.Enabled = true;
+            this.Text = savedName;
+            this.Size = noBundleSize;
+            DeckSaver.FileName = DeckLoader.FileName;
+        }
+        void LoadBundleDeck(BundleDeck deck)
+        {
+            Deck = deck.Cards;
+            DeckNameTextBox.Text = deck.Name;
+            CurrentDeckListPage = 0;
+            CurrentBundleDeck = deck;
+            DeckUpdate(false);
+            DeckSearch.Enabled = true;
+            DeckSearchList.Enabled = true;
+            DeckTypeComboBox.Enabled = false;
+            this.Text = savedName;
+            this.Size = withBundleSize;
+            DeckSaver.FileName = "";
         }
         private void DeckLoader_FileOk(object sender, CancelEventArgs e)
         {
@@ -122,13 +169,13 @@ namespace PvZH_Mod_Deck_Builder
             string JsonDeck;
             if (DeckTypeComboBox.SelectedIndex == 1)
             {
-                AIDeckInfo = new();
+                JsonAIDeck AIDeckInfo = new();
                 AIDeckInfo.MainDeckCardIds = Deck.Select(card => card.ID).ToArray();
                 JsonDeck = JsonSerializer.Serialize(AIDeckInfo);
             }
             else
             {
-                StrategyDeckInfo = new();
+                JsonStrategyDeck StrategyDeckInfo = new();
                 StrategyDeckInfo.m_Name = DeckNameTextBox.Text;
                 StrategyDeckInfo.Faction = FactionTypeComboBox.SelectedIndex == 1 ? 1 : 0;
                 JsonDeck = StrategyDeckInfo.GetCompleteJson(Deck);
@@ -137,22 +184,24 @@ namespace PvZH_Mod_Deck_Builder
             this.Text = savedName;
         }
 
-        private void SearchList_SelectedIndexChanged(object sender, EventArgs e)
+        private void CardSearchList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (SearchList.SelectedValue != null) SelectedListCardID = (int)SearchList.SelectedValue;
+            if (CardSearchList.SelectedValue != null) SelectedListCardID = (int)CardSearchList.SelectedValue;
             else SelectedListCardID = -1;
         }
-        void InitializeAllCards()
+        void InitializeDataSources()
         {
-            SearchList.DataSource = CurrentCardItems;
-            SearchList.DisplayMember = "Name";
-            SearchList.ValueMember = "ID";
-        }
-        void InitializeDeck()
-        {
+            CardSearchList.DataSource = DisplayedSearchedCards;
+            CardSearchList.DisplayMember = "Name";
+            CardSearchList.ValueMember = "ID";
+
             DeckList.DataSource = DisplayedDeckCards;
             DeckList.DisplayMember = "Name";
             DeckList.ValueMember = "ID";
+
+            DeckSearchList.DataSource = DisplayedBundleDecks;
+            DeckSearchList.DisplayMember = "Name";
+            DeckSearchList.ValueMember = "Self";
         }
         void InitializeCombos()
         {
@@ -167,14 +216,13 @@ namespace PvZH_Mod_Deck_Builder
 
         private void CardSearch_TextChanged(object sender, EventArgs e)
         {
-            CurrentCardItems.Clear();
+            DisplayedSearchedCards.Clear();
             CardIDList.Items.Clear();
-            CurrentSearchListPage = 0;
             SearchedCards.Clear();
 
             if (CardSearch.Text == "")
             {
-                SetSearchListPageLabel();
+                SetCardSearchPageLabel();
                 return;
             }
 
@@ -187,28 +235,25 @@ namespace PvZH_Mod_Deck_Builder
             }
             if (SearchedCards.Count < 1)
             {
-                SetSearchListPageLabel();
+                SetCardSearchPageLabel();
                 return;
             }
-            foreach (CardItem Card in SearchedCards.Take(20))
-            {
-                CurrentCardItems.Add(Card);
-                CardIDList.Items.Add(Card.ID.ToString());
-            }
-            SetSearchListPageLabel();
-            SearchList.SelectedItem = null;
+
+            CurrentCardSearchPage = 0;
+            CardSearch_PageChanged();
+            CardSearchList.SelectedItem = null;
         }
-        void SetSearchListPageLabel()
+        void SetCardSearchPageLabel()
         {
             if (SearchedCards.Count < 1)
             {
-                SearchListPageLabel.Text = "0/0";
+                CardSearchPageLabel.Text = "0/0";
             }
             else
             {
-                int CurrentPage = CurrentSearchListPage + 1;
+                int CurrentPage = CurrentCardSearchPage + 1;
                 string str = CurrentPage.ToString() + "/" + (NumOfSearchPages() + 1).ToString();
-                SearchListPageLabel.Text = str;
+                CardSearchPageLabel.Text = str;
             }
         }
         void SetDeckListPageLabel()
@@ -246,6 +291,12 @@ namespace PvZH_Mod_Deck_Builder
                 DeckList.SelectedItem = DeckList.Items[^1];
                 DeckList_SelectedIndexChanged();
             }
+
+            if (CurrentBundleDeck != null)
+            {
+                CurrentBundleDeck.Cards.Clear();
+                foreach (CardItem Card in Deck) CurrentBundleDeck.Cards.Add(Card);
+            }
         }
         private void Deck_PageChanged()
         {
@@ -262,7 +313,6 @@ namespace PvZH_Mod_Deck_Builder
             SetDeckListPageLabel();
             DeckList.SelectedItem = null;
         }
-        BindingList<CardItem> DisplayedDeckCards { get; set; } = [];
 
         private void CardRemover_Click(object sender, EventArgs e)
         {
@@ -304,33 +354,31 @@ namespace PvZH_Mod_Deck_Builder
             {
                 Deck.Clear();
                 DeckSaver.FileName = "";
-                DeckUpdate(false);
-                DeckNameTextBox.Text = "";
-                this.Text = savedName;
+                LoadStrategyDeck([], "", 0);
             }
         }
-        void SearchList_PageChanged()
+        void CardSearch_PageChanged()
         {
-            CurrentCardItems.Clear();
+            DisplayedSearchedCards.Clear();
             CardIDList.Items.Clear();
-            foreach (CardItem Card in SearchedCards.Skip(CurrentSearchListPage * 20).Take(20))
+            foreach (CardItem Card in SearchedCards.Skip(CurrentCardSearchPage * 20).Take(20))
             {
-                CurrentCardItems.Add(Card);
+                DisplayedSearchedCards.Add(Card);
                 CardIDList.Items.Add(Card.ID.ToString());
             }
-            SetSearchListPageLabel();
-            SearchList.SelectedItem = null;
+            SetCardSearchPageLabel();
+            CardSearchList.SelectedItem = null;
         }
 
-        private void SearchListScrollLeft_Click(object sender, EventArgs e)
+        private void CardSearchListScrollLeft_Click(object sender, EventArgs e)
         {
             if (SearchedCards.Count > ItemsPerPage)
             {
-                int NewPage = Math.Max(CurrentSearchListPage - 1, 0);
-                if (CurrentSearchListPage != NewPage)
+                int NewPage = Math.Max(CurrentCardSearchPage - 1, 0);
+                if (CurrentCardSearchPage != NewPage)
                 {
-                    CurrentSearchListPage = NewPage;
-                    SearchList_PageChanged();
+                    CurrentCardSearchPage = NewPage;
+                    CardSearch_PageChanged();
                 }
             }
         }
@@ -338,15 +386,15 @@ namespace PvZH_Mod_Deck_Builder
         {
             return Math.Max(0, (int)Math.Floor((SearchedCards.Count - 1) / (float)ItemsPerPage));
         }
-        private void SearchListScrollRight_Click(object sender, EventArgs e)
+        private void CardSearchScrollRight_Click(object sender, EventArgs e)
         {
             if (SearchedCards.Count > ItemsPerPage)
             {
-                int NewPage = Math.Min(CurrentSearchListPage + 1, NumOfSearchPages());
-                if (CurrentSearchListPage != NewPage)
+                int NewPage = Math.Min(CurrentCardSearchPage + 1, NumOfSearchPages());
+                if (CurrentCardSearchPage != NewPage)
                 {
-                    CurrentSearchListPage = NewPage;
-                    SearchList_PageChanged();
+                    CurrentCardSearchPage = NewPage;
+                    CardSearch_PageChanged();
                 }
             }
         }
@@ -424,11 +472,30 @@ namespace PvZH_Mod_Deck_Builder
 
         private void UnityAssetLoader_FileOk(object sender, CancelEventArgs e)
         {
-            UAH.LoadDecksFromDataAssets(UnityAssetLoader.FileName, out bool success);
+            UAH.LoadDecksFromDataAssets(UnityAssetLoader.FileName, out bool success, out List<BundleDeck> decks);
+            if (success)
+            {
+                AllBundleDecks.Clear();
+                DisplayedBundleDecks.Clear();
+                foreach (BundleDeck deck in decks) AllBundleDecks.Add(deck);
+                CurrentDeckSearchPage = 0;
+                DeckSearch_PageChanged();
+                DeckSearchList.SelectedItem = DeckSearchList.Items[0];
+                DeckSearchList_SelectedIndexChanged(new(), new());
+
+                if (AllBundleDecks[0].IsStrategyDeck)
+                {
+                    DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[0];
+                }
+                else
+                {
+                    DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[1];
+                }
+            }
         }
 
         private void loadBundleToolStripMenuItem_Click(object sender, EventArgs e)
-        {   
+        {
             UnityAssetLoader.ShowDialog();
         }
 
@@ -452,6 +519,78 @@ namespace PvZH_Mod_Deck_Builder
                 DeckUpdate(false);
                 CardSearch_TextChanged(new(), new());
             }
+        }
+
+        private void DeckSearchList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            BundleDeck bDeck = (BundleDeck)DeckSearchList.SelectedValue;
+            if (bDeck != null) LoadBundleDeck(bDeck);
+        }
+        private void DeckSearchScrollLeft_Click(object sender, EventArgs e)
+        {
+            if (AllBundleDecks.Count > ItemsPerPage)
+            {
+                int NewPage = Math.Max(CurrentDeckSearchPage - 1, 0);
+                if (CurrentDeckSearchPage != NewPage)
+                {
+                    CurrentDeckSearchPage = NewPage;
+                    DeckSearch_PageChanged();
+                }
+            }
+        }
+        private void DeckSearchScrollRight_Click(object sender, EventArgs e)
+        {
+            if (AllBundleDecks.Count > ItemsPerPage)
+            {
+                int NewPage = Math.Min(CurrentDeckSearchPage + 1, NumOfDeckSearchPages());
+                if (CurrentDeckSearchPage != NewPage)
+                {
+                    CurrentDeckSearchPage = NewPage;
+                    DeckSearch_PageChanged();
+                }
+            }
+        }
+        void DeckSearch_PageChanged()
+        {
+            DisplayedBundleDecks.Clear();
+            foreach (BundleDeck deck in CurrentPageSearchedDecks())
+            {
+                DisplayedBundleDecks.Add(deck);
+            }
+            SetDeckSearchPageLabel();
+            DeckSearchList.SelectedItem = null;
+        }
+        List<BundleDeck> SearchedDecks()
+        {
+            return AllBundleDecks.FindAll(x => x.Name.Contains(DeckSearch.Text, StringComparison.OrdinalIgnoreCase));
+        }
+        List<BundleDeck> CurrentPageSearchedDecks()
+        {
+            return SearchedDecks().Skip(CurrentDeckSearchPage * 20).Take(20).ToList();
+        }
+        int NumOfDeckSearchPages()
+        {
+            return Math.Max(0, (int)Math.Floor((SearchedDecks().Count - 1) / (float)ItemsPerPage));
+        }
+        void SetDeckSearchPageLabel()
+        {
+            if (AllBundleDecks.Count < 1)
+            {
+                DeckSearchPageLabel.Text = "0/0";
+            }
+            else
+            {
+                int CurrentPage = CurrentDeckSearchPage + 1;
+                string str = CurrentPage.ToString() + "/" + (NumOfDeckSearchPages() + 1).ToString();
+                DeckSearchPageLabel.Text = str;
+            }
+        }
+
+        private void DeckSearch_TextChanged(object sender, EventArgs e)
+        {
+            if (AllBundleDecks.Count <= 0) return;
+            CurrentDeckSearchPage = 0;
+            DeckSearch_PageChanged();
         }
     }
 }

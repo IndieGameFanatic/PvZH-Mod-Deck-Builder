@@ -13,16 +13,17 @@ namespace PvZH_Mod_Deck_Builder
         AssetsFileInstance AssetFileInstance;
         AssetsFile AssetFile;
         List<BundleDeck> Decks = [];
-        internal void LoadDecksFromDataAssets(string FilePath, out bool success)
+        internal void LoadDecksFromDataAssets(string FilePath, out bool success, out List<BundleDeck> OutputDecks)
         {
             success = false;
+            OutputDecks = [];
             try
             {
                 BundleInstance = Manager.LoadBundleFile(FilePath, true);
                 Bundle = BundleInstance.file;
                 AssetFileInstance = Manager.LoadAssetsFileFromBundle(BundleInstance, 0, false);
                 AssetFile = AssetFileInstance.file;
-                Decks.Clear();
+                this.Decks.Clear();
                 if (AssetFile.GetAssetsOfType(AssetClassID.TextAsset).Count > 0)
                 {
                     foreach (var texInfo in AssetFile.GetAssetsOfType(AssetClassID.TextAsset))
@@ -31,7 +32,9 @@ namespace PvZH_Mod_Deck_Builder
                         string script = texBase["m_Script"].AsString;
                         if (script.Contains("MainDeckCardIds"))
                         {
-                            Decks.Add(new BundleDeck(texInfo, texBase));
+                            var JsonDeck = JsonSerializer.Deserialize<JsonAIDeck>(script);
+                            var cards = CardsStorage.GetCardsByIDs(JsonDeck.MainDeckCardIds);
+                            this.Decks.Add(new BundleDeck(texInfo, texBase, cards, false));
                         }
                     }
                     success = true;
@@ -41,30 +44,43 @@ namespace PvZH_Mod_Deck_Builder
                     foreach (var monoInfo in AssetFile.GetAssetsOfType(AssetClassID.MonoBehaviour))
                     {
                         var monoBase = Manager.GetBaseField(AssetFileInstance, monoInfo);
-                        Decks.Add(new BundleDeck(monoInfo, monoBase));
+                        List<int> CardIDs = [];
+                        foreach (AssetTypeValueField Card in monoBase["Cards.CardEntries.Array"])
+                        {
+                            int id = Card["CardGuid"].AsInt;
+                            int copies = Card["NumCopies"].AsInt;
+                            for (int i = 0; i < copies; i++) CardIDs.Add(id);
+                        }
+                        var cards = CardsStorage.GetCardsByIDs(CardIDs.ToArray());
+                        this.Decks.Add(new BundleDeck(monoInfo, monoBase, cards, true));
                     }
                     success = true;
                 }
+                Decks = Decks.OrderBy(x => x.Name).ToList();
+                if (success) OutputDecks = Decks;
             }
             catch
             {
                 MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        internal class BundleDeck
+    }
+    internal class BundleDeck
+    {
+        public string Name { get; set; }
+        public AssetFileInfo Info { get; set; }
+        public AssetTypeValueField Base { get; set; }
+        public BundleDeck Self { get; set; }
+        public List<CardItem> Cards { get; set; }
+        public bool IsStrategyDeck { get; set; }
+        internal BundleDeck(AssetFileInfo assetinfo, AssetTypeValueField assetbase, List<CardItem> cards, bool isStrategy)
         {
-            public string Name { get; set; }
-            public AssetFileInfo Info { get; set; }
-            public AssetTypeValueField Base { get; set; }
-            public BundleDeck Self { get; set; }
-            internal BundleDeck(AssetFileInfo assetinfo, AssetTypeValueField assetbase)
-            {
-                Info = assetinfo;
-                Base = assetbase;
-                Name = assetbase["m_Name"].AsString;
-                Self = this;
-            }
+            Info = assetinfo;
+            Base = assetbase;
+            Name = assetbase["m_Name"].AsString;
+            Self = this;
+            Cards = cards;
+            IsStrategyDeck = isStrategy;
         }
     }
-    
 }
