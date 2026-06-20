@@ -100,6 +100,7 @@ namespace PvZH_Mod_Deck_Builder
         {
             Deck = Cards;
             DeckTypeComboBox.SelectedItem = DeckTypeComboBox.Items[1];
+            FactionTypeComboBox.SelectedItem = FactionTypeComboBox.Items[0];
             DeckNameTextBox.Text = "";
             CurrentDeckListPage = 0;
             CurrentBundleDeck = null;
@@ -107,9 +108,11 @@ namespace PvZH_Mod_Deck_Builder
             DeckSearch.Enabled = false;
             DeckSearchList.Enabled = false;
             DeckTypeComboBox.Enabled = true;
+            FactionTypeComboBox.Enabled = true;
             this.Text = savedName;
             this.Size = noBundleSize;
             DeckSaver.FileName = DeckLoader.FileName;
+            DeckSaver.Filter = "JSON File|*.json|Text File|*.txt|All Files|*.*";
         }
         void LoadStrategyDeck(List<CardItem> Cards, string Name, int Faction)
         {
@@ -123,9 +126,11 @@ namespace PvZH_Mod_Deck_Builder
             DeckSearch.Enabled = false;
             DeckSearchList.Enabled = false;
             DeckTypeComboBox.Enabled = true;
+            FactionTypeComboBox.Enabled = true;
             this.Text = savedName;
             this.Size = noBundleSize;
             DeckSaver.FileName = DeckLoader.FileName;
+            DeckSaver.Filter = "JSON File|*.json|Text File|*.txt|All Files|*.*";
         }
         void LoadBundleDeck(BundleDeck deck)
         {
@@ -137,9 +142,13 @@ namespace PvZH_Mod_Deck_Builder
             DeckSearch.Enabled = true;
             DeckSearchList.Enabled = true;
             DeckTypeComboBox.Enabled = false;
+            DeckNameTextBox.Enabled = false;
+            FactionTypeComboBox.SelectedItem = FactionTypeComboBox.Items[deck.Faction];
+            FactionTypeComboBox.Enabled = false;
             this.Text = savedName;
             this.Size = withBundleSize;
-            DeckSaver.FileName = "";
+            DeckSaver.FileName = UnityAssetLoader.FileName;
+            DeckSaver.Filter = "All Files|*.*";
         }
         private void DeckLoader_FileOk(object sender, CancelEventArgs e)
         {
@@ -153,20 +162,24 @@ namespace PvZH_Mod_Deck_Builder
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (File.Exists(DeckSaver.FileName))
-            {
-                DeckSaver_FileOk(sender, new());
-            }
-            else DeckSaver.ShowDialog();
+            if (File.Exists(DeckSaver.FileName) && AllBundleDecks.Count <= 0) DeckSaver_FileOk(new(), new());
+            else saveAsToolStripMenuItem_Click(new(), new());
         }
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DeckSaver.FileName = "Deck.json";
+            if (AllBundleDecks.Count > 0) DeckSaver.FileName = "Bundle";
+            else DeckSaver.FileName = "Deck.json";
             DeckSaver.ShowDialog();
         }
         private void DeckSaver_FileOk(object sender, CancelEventArgs e)
         {
             string JsonDeck;
+            if (AllBundleDecks.Count > 0)
+            {
+                UAH.SaveBundle(DeckSaver.FileName);
+                this.Text = savedName;
+                return;
+            }
             if (DeckTypeComboBox.SelectedIndex == 1)
             {
                 JsonAIDeck AIDeckInfo = new();
@@ -353,8 +366,8 @@ namespace PvZH_Mod_Deck_Builder
             if (dialogResult == DialogResult.Yes)
             {
                 Deck.Clear();
-                DeckSaver.FileName = "";
                 LoadStrategyDeck([], "", 0);
+                DeckSaver.FileName = "";
             }
         }
         void CardSearch_PageChanged()

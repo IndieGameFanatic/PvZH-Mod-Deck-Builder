@@ -64,11 +64,29 @@ namespace PvZH_Mod_Deck_Builder
                 MessageBox.Show("Something went wrong!", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        internal void SaveBundle(string path)
+        {
+            foreach (BundleDeck Deck in Decks) Deck.SaveDeck();
+            Bundle.BlockAndDirInfo.DirectoryInfos[0].SetNewData(AssetFile);
+            try
+            {
+                using (AssetsFileWriter writer = new AssetsFileWriter(path))
+                {
+                    Bundle.Write(writer);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is IOException) MessageBox.Show("You cannot save to the bundle you loaded! Save it as "
+                    + "a new bundle.", "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
     internal class BundleDeck
     {
         public string Name { get; set; }
         public AssetFileInfo Info { get; set; }
+        public int Faction { get; set; }
         public AssetTypeValueField Base { get; set; }
         public BundleDeck Self { get; set; }
         public List<CardItem> Cards { get; set; }
@@ -81,6 +99,41 @@ namespace PvZH_Mod_Deck_Builder
             Self = this;
             Cards = cards;
             IsStrategyDeck = isStrategy;
+
+            if (IsStrategyDeck) Faction = assetbase["Faction"].AsInt;
+            else Faction = 0;
+        }
+        internal void SaveDeck()
+        {
+            if (!IsStrategyDeck)
+            {
+                JsonAIDeck AIDeckInfo = new();
+                AIDeckInfo.MainDeckCardIds = Cards.Select(card => card.ID).ToArray();
+                string JsonDeck = JsonSerializer.Serialize(AIDeckInfo);
+                Base["m_Script"].AsString = JsonDeck;
+                Info.SetNewData(Base);
+            }
+            else
+            {
+                var CardIDs = Cards.Select(card => card.ID).ToArray();
+                var UniqueCardIDs = CardIDs.Distinct();
+                List<(int, int)> CardIDsAndCopies = [];
+                var baseArray = Base["Cards.CardEntries.Array"];
+                List<AssetTypeValueField> newChildren = [];
+
+                foreach (int ID in UniqueCardIDs)
+                {
+                    var newChild = ValueBuilder.DefaultValueFieldFromArrayTemplate(baseArray);
+                    newChild["CardGuid"].AsInt = ID;
+                    newChild["Faction"].AsInt = Faction;
+                    newChild["Filter"].AsString = "";
+                    newChild["NumCopies"].AsInt = CardIDs.Count(ID);
+                    newChild["Guid"].AsString = CardsStorage.GetCardByID(ID).Guid;
+                    newChildren.Add(newChild);
+                }
+                Base["Cards.CardEntries.Array"].Children = newChildren;
+                Info.SetNewData(Base);
+            }
         }
     }
 }
